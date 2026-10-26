@@ -1,0 +1,896 @@
+//GLOBAL
+.layout-w {
+    min-height: calc(100vh);
+}
+// Up to 1650px the dashboard's content panel waits off-canvas and widened the page by its width.
+.all-wrapper {
+    overflow-x: clip;
+}
+// A flex item never shrinks below its content by default: wide tables pushed the page past the
+// viewport and DataTables Responsive, measuring that widened container, never collapsed columns.
+.layout-w > .content-w,
+.content-i > .content-box {
+    min-width: 0;
+}
+.btn-custom-grey {
+    padding: 10px 7px 3px;
+    background-color: rgba(0, 0, 0, 0.08);
+    border-radius: 6px;
+    vertical-align: middle;
+    margin-left: 5px;
+    text-align: center;
+    cursor:pointer;
+    i {
+        font-size: 20px;
+        line-height: 20px;
+        font-weight: 500;
+    }
+    &:hover {
+        background: rgba(0, 0, 0, 0.12);
+    }
+}
+.element-header .btn.btn-primary.btn-sm {
+    margin-left: 1rem;
+    margin-top: -7px;
+    font-weight: 600;
+}
+.btn.btn-lg {
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+.btn.btn-icon{
+    padding-left: 1.5rem;
+    padding-right: 3rem;
+}
+.btn.btn-icon i{
+    margin-right: 1.5rem;
+}
+.content-box{
+    padding-top:1.5rem;
+}
+.btn-info {
+    color:white;
+}
+.form-group .date-input:before {
+    top: 20px;
+}
+.form-inline label {
+    margin: 0px 5px;
+}
+.element-actions .form-inline .date-input {
+    margin-top: -0.2rem;
+}
+.btn.btn-table {
+    border: 2px #dde2ec solid;
+    background: #fff;
+    margin: 0px 1px !important;
+    border-radius: 5px !important;
+    color: #3e4b5a;
+    height: 32px;
+}
+span.help,
+form span.help{
+    font-size: 0.7rem;
+    color: #a7a7a7;
+    font-weight: 100;
+}
+form .form-group label {
+    font-weight: 500;
+}
+label.required:after {
+    content:'*';
+    color:#D65C57;
+}
+legend {
+    margin-top: 1.5rem;
+}
+input[type="radio"], input[type="checkbox"]{
+    margin-right:0.4rem;
+}
+.form-group select {
+    font-weight: 400;
+}
+table.table-sm td {
+    padding: 4px !important;
+    text-align: center;
+}
+.table tfoot th, .table thead th {
+    font-size: 0.8rem !important;
+    color: #504f4f !important;
+    padding: 4px !important;
+}
+.input-sm input {
+    padding: 0.2rem !important;
+    font-size: 0.9rem !important;
+    line-height: 0.9rem !important;
+}
+.form-filter-small .value .form-check-label, .form-filter-large .value .form-check-label {
+    cursor:pointer;
+}
+.form-filter-small .value .form-check-label span {
+    font-size: 0.9rem;
+}
+.form-filter-small .value {
+    font-size: 0.9rem;
+}
+.form-filter-small a.element-box {
+    padding-top: 0.8rem;
+    padding-bottom: 0.8rem;
+}
+.form-filter-small input.form-check-input {
+    margin-top: -8px;
+}
+.form-filter-large .value .form-check-label span {
+    font-size: 2rem;
+    font-weight: 700;
+    @media (max-width:1320px) {
+        font-size: 1.5rem;
+    }
+}
+.form-filter-large .label {
+    font-size: 0.8rem;
+    margin-bottom: -8px;
+    font-weight: 600;
+}
+.form-filter-large a.element-box {
+    padding-top: 0.8rem;
+    padding-bottom: 0.8rem;
+}
+.text-black {
+    color: #333;
+}
+.text-grey {
+    color: #bbb;
+}
+b, strong {
+    font-weight: 600;
+}
+.bar-level-1,.bar-level-2,.bar-level-3{
+    max-width: 100%;
+}
+.row-actions a.primary {
+    color:$primary;
+}
+[data-toggle="popover"] {
+    cursor:pointer;
+}
+.zoom-09 {
+    zoom:0.8;
+}
+.zoom-08 {
+    zoom:0.8;
+}
+.zoom-07 {
+    zoom:0.7;
+}
+.bolder {
+    font-weight: bolder !important;
+}
+.smaller {
+    font-size: 70% !important;
+} 
+.bigger {
+    font-size: 120% !important;
+}
+.clickable {
+    cursor:pointer;
+}
+.scroll-x {
+    width:100%;
+    overflow-x: auto !important;
+}   
+.table-scroll {
+    table-layout: fixed;
+}
+
+//SELECT2
+.v-select {
+    border: 2px solid #dde2ec;
+    border-radius: 4px;
+    background:#fff !important;
+    .dropdown-toggle {
+        border:none !important;
+    }
+    .dropdown-menu {
+        border: 2px solid #dde2ec !important;
+        background:#fff !important;
+    }
+    .selected-tag {
+        border: #9ab9dc 2px solid !important;
+        background: #fafafa !important;
+        font-size: 0.9rem !important;
+        padding: 0px 5px !important;
+        color: #3a3a3a !important;
+        line-height: 22px !important;
+    }
+    &.single .selected-tag {
+        border: none !important;
+        background: #fff !important;
+        font-size: 0.9rem !important;
+        padding: 0px 5px !important;
+        color: #3a3a3a !important;
+        line-height: 22px !important;
+        position: absolute;
+    }
+}
+
+//LOGIN PAGE
+// Anchored to the edges rather than sized with min-height: 100vh, which body's zoom: .9 shrank to 90% of
+// the screen and left a strip of the body's background under the pattern (see .modal-backdrop).
+.auth-wrapper {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow-y: auto;
+    background-color: #2b4c86;
+}
+body .auth-wrapper .all-wrapper {
+    display: flex;
+    min-height: 100%;
+    padding: 40px 16px;
+    background-position: center;
+}
+.auth-wrapper .auth-box-w {
+    width: 100%;
+    max-width: 420px;
+    // auto margins center the card and, unlike align-items, let it scroll from its top when taller than the screen
+    margin: auto;
+    border-radius: 12px;
+    box-shadow: 0 24px 60px rgba(9, 23, 54, 0.35);
+    .logo-w {
+        padding: 40px 40px 0;
+        img {
+            width: 100%;
+            max-width: 260px;
+        }
+    }
+    .auth-header {
+        margin: 28px 40px 0;
+        padding: 0 0 14px;
+        border-bottom: 0;
+        text-align: center;
+        font-size: 1.35rem;
+        &:after {
+            left: 50%;
+            bottom: 0;
+            width: 28px;
+            height: 4px;
+            transform: translateX(-50%);
+        }
+    }
+    .auth-desc {
+        margin: 0 0 1.25rem;
+        color: $color-text-faded;
+        font-size: 0.9rem;
+        text-align: center;
+    }
+    form {
+        padding: 28px 40px 8px;
+        .form-group {
+            margin-bottom: 1.1rem;
+        }
+    }
+    label {
+        font-size: 0.85rem;
+        color: #3e4b5a;
+        // both fields are obviously required: base.js's asterisk is noise here
+        &.required:after {
+            content: none;
+        }
+    }
+    // the icon sits inside the field, so the form no longer needs a gutter on the left for it
+    .auth-input {
+        position: relative;
+        i {
+            position: absolute;
+            top: 50%;
+            left: 14px;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: #9aa4b5;
+            pointer-events: none;
+            transition: color 0.15s;
+        }
+        .form-control {
+            height: 46px;
+            padding-left: 44px;
+            border-width: 1px;
+            border-radius: 8px;
+            background-color: #f7f8fb;
+            transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+            &:focus {
+                background-color: #fff;
+                border-color: $primary;
+                box-shadow: 0 0 0 3px rgba($primary, 0.15);
+            }
+            &.is-invalid {
+                border-color: $danger;
+                &:focus {
+                    box-shadow: 0 0 0 3px rgba($danger, 0.15);
+                }
+            }
+        }
+        &:focus-within i {
+            color: $primary;
+        }
+    }
+    // v-show decides when it shows: the field's wrapper keeps Bootstrap's `.is-invalid ~` rule from matching
+    .invalid-feedback {
+        display: block;
+    }
+    .auth-forgot {
+        margin: -0.4rem 0 1.4rem;
+        text-align: right;
+        font-size: 0.85rem;
+    }
+    .auth-actions {
+        padding-top: 0.25rem;
+    }
+    .btn {
+        height: 46px;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+    .auth-back {
+        display: block;
+        margin-top: 1rem;
+        text-align: center;
+        font-size: 0.85rem;
+    }
+    .copyright {
+        margin: 0;
+        padding: 20px 10px 22px;
+    }
+}
+@media (max-width: 480px) {
+    .auth-wrapper .auth-box-w {
+        .logo-w {
+            padding: 32px 24px 0;
+        }
+        .auth-header {
+            margin-left: 24px;
+            margin-right: 24px;
+        }
+        form {
+            padding-left: 24px;
+            padding-right: 24px;
+        }
+    }
+}
+
+//MODAL
+// Bootstrap sizes the backdrop with 100vw x 100vh, which body's zoom: .9 shrinks to 90% of the screen:
+// anchoring it to all four edges makes it cover the whole viewport whatever the zoom.
+.modal-backdrop {
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: auto;
+}
+
+//LOCKSCREEN
+// Anchored to the edges rather than sized in vw/vh, which body's zoom shrinks (see .modal-backdrop)
+#lockedScreen {
+    position: fixed;
+    z-index: 100;
+    background:rgba(171, 171, 171, 0.85);
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow: hidden;
+    .auth-box-w {
+        margin-top: calc(10vw);
+        text-align: left;
+        .auth-header{
+            margin-bottom: 0px;
+        }
+        i{
+            font-size: 90px;
+            display: block;
+            margin: auto;
+        }
+    }
+}
+.main-menu a[href][selected]{
+    margin-left:8px;
+    font-weight: 600;    
+}
+.element-header .default-title i {
+    font-size: 2rem;
+    margin-right: 0.5rem;
+}
+.element-header .default-title span {
+    font-size: 1.3rem;
+}
+@media (max-width:768px) {
+    .default-title{
+        display: block;
+        margin-bottom: 15px; 
+    }
+}
+
+
+//DATEPICKER
+.daterangepicker {
+    min-width:unset !important;
+    .calendar-time {
+        text-align: center;
+        margin-top:2px;
+    }
+    .daterangepicker_input i.fa-calendar {
+        top: 15px;
+    }
+    .daterangepicker_input i.fa-clock-o {
+        top: 50px;
+    }
+}
+
+//COPYRIGHT
+.copyright {
+    color: #c1c1c1;
+    padding: 10px;
+    text-align: center;
+    display: block;
+    margin-top: -20px;
+    font-size: 10px;
+    img{
+        height : 20px;
+    }
+}
+.menu-w span.copyright {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+//LEFT MENU
+.menu-w.menu-side-left {
+    & .logo-w {
+        padding: 10px;
+        text-align: center;
+        & .logo{
+            margin:auto;
+        }
+        & .logo-main{
+            height:33px;
+            width:auto;
+        }
+    }
+    & .logged-user-i {
+        padding-left: 1rem;
+        & img.avatar-default {
+            height: 40px;
+            opacity:0.3;
+        }
+    }
+    & .logged-user-w {
+        padding: 1rem 1rem 0.8rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+        &.avatar-inline .logged-user-i .logged-user-info-w {
+            max-width: 70%;
+            line-height: 1rem;
+        }
+    }
+    & .logged-user-w.avatar-inline .logged-user-toggler-arrow {
+        padding: 4px 7px;
+        text-align: center;
+    }
+    & .main-menu {
+        padding-bottom:0px !important;
+        padding-top:5px !important;
+    }
+    & .main-menu:first-of-type {
+        margin-top: 15px;
+    }
+    & .main-menu:last-of-type {
+        margin-bottom: 80px;
+    }
+    & .main-menu:last-of-type {
+        margin-bottom: 80px;
+    }
+}
+
+//DATATABLES
+.dataTables_wrapper {
+    .dataTables_length, .dt-buttons , .dataTables_info {
+        float: left;
+        padding-bottom:10px; 
+    }
+    .dataTables_filter {
+        float: right;
+    }
+    @media screen and (max-width: 767px) {
+        .dt-buttons.btn-group, div.dataTables_info {
+            display: none !important;
+        }
+        div.dataTables_length {
+            float: left;
+        }
+        div.dataTables_filter, div.dataTables_paginate {
+            float: right;
+        }
+    } 
+}
+
+//DATE RANGE PICKER (Element UI)
+// Its two months side by side need 646px (756px with shortcuts) and started off-screen on phones:
+// below 768px the panel becomes a sheet at the bottom of the screen, months stacked, shortcuts as chips.
+@media (max-width: 767px) {
+    .el-picker-panel.el-date-range-picker {
+        position: fixed !important;
+        top: auto !important;
+        bottom: 8px !important;
+        left: 8px !important;
+        right: 8px !important;
+        width: auto !important;
+        max-height: calc(100vh - 16px);
+        margin: 0 !important;
+        overflow-y: auto;
+        box-shadow: 0 -4px 24px rgba(0, 0, 0, .18);
+        .popper__arrow {
+            display: none;
+        }
+        .el-picker-panel__sidebar {
+            position: static;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            width: auto;
+            padding: 10px 12px;
+            border-right: 0;
+            border-bottom: 1px solid #e4e4e4;
+            overflow: visible;
+        }
+        .el-picker-panel__shortcut {
+            width: auto;
+            padding: 0 10px;
+            border: 1px solid #dcdfe6;
+            border-radius: 14px;
+            font-size: 13px;
+        }
+        .el-picker-panel__body {
+            min-width: 0;
+            margin-left: 0;
+        }
+        .el-date-range-picker__content {
+            float: none;
+            width: 100%;
+            padding: 10px 12px;
+            &.is-left {
+                border-right: 0;
+                border-bottom: 1px solid #e4e4e4;
+            }
+        }
+    }
+}
+
+//MOBILE MENU
+@media (max-width: 767px) {
+    .menu-mobile {
+        .menu-actions {
+            order: 3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            border-bottom: solid 1px #ccc;
+            .top-icon {
+            margin: 5px 0px;
+            }
+        }
+        .messages-notifications {
+            margin: 0px 10%;
+            position: relative;
+            font-size: 24px;
+            .new-messages-count {
+            background-color: $danger;
+            color: #fff;
+            border-radius: 6px;
+            font-weight: $font-weight-bold;
+            position: absolute;
+            top: -5px;
+            right: -12px;
+            padding: 4px 4px;
+            vertical-align: middle;
+            font-size: $font-size-base * 0.8;
+            line-height: 1;
+            }
+            i {
+            vertical-align: middle;
+            }
+        }
+    }
+    .breadcrumb {
+        display:none;
+    }
+}
+@media (min-width: 768px) and (max-width: 1024px){ 
+    .menu-mobile {
+        .menu-actions {
+            display:none;
+        }
+    }
+    .menu-mobile .mm-logo-buttons-w .mm-logo img{
+        width: 100%;
+        height: auto;
+    }
+}
+
+//TOPBAR
+.top-bar {
+    border-left: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: none;
+    .top-icon {
+        margin:0px 10px;
+    }
+    .top-menu-left{
+        padding-left:20px;
+    }
+    .btn-custom-grey:first-of-type{
+        padding-left:5px;
+    }
+    .btn-custom-grey:last-of-type{
+        padding-right:5px;
+    }
+    @media (max-width: 768px) {
+        -ms-flex-direction: unset;
+        flex-direction: unset;
+    }
+}
+
+
+//PROGRAMS
+.projects-list .project-head .project-users .avatar {
+    margin-left: -10px;
+}
+.el-tablo.smaller .value {
+    font-size: 1rem;
+}
+.el-tablo.smaller .label {
+    font-size: 0.5rem;
+}
+.el-tablo .trending.abs {
+    position: absolute;
+    right: 20px;
+    top: 5px;
+}
+
+//PIPELINE
+.pipeline-settings i {
+    font-size: 1.6rem;
+    cursor: pointer;
+}
+.control-header select.form-control {
+    border-color:#dde2ec;
+}
+.pipeline-item .pi-controls .pi-settings > i {
+    font-size:20px;
+}
+.pipeline.lined-info{
+    border-top: 5px solid $info;
+    border-radius: 0px 0px 4px 4px;
+}
+.pi-name .status-pill {
+    margin-top: -3px;
+}
+.pi-info .last-comment {
+    font-size: 0.6rem;
+    border-top: 1px solid #ddd;
+    margin-top: 10px;
+    padding-top: 5px;
+}
+.pi-info .last-comment b {
+    font-size: 0.5rem;
+    color:#888;
+}
+.status-pill {
+    &.primary{
+        background-color: $primary;
+    }
+    &.info {
+        background-color: $info;
+    }
+    &.warning{
+        background-color: $warning;
+    }
+    &.success{
+        background-color: $success;
+    }
+    &.danger{
+        background-color: $danger;
+    }
+} 
+.project-title img {
+    margin: -10px 10px 0px -20px;
+    height: 25px;
+    padding-right: 10px;
+    border-right: 1px #ccc solid;
+    vertical-align: bottom;
+}
+.project-info{
+    padding-top: 10px;
+}
+.pi-foot span.badge {
+    max-width: 100px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+.pi-info {
+    max-width: 100%;
+    a.badge.badge-primary {
+        max-width: 100%;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+}
+
+//REPORT
+.report {
+    width:100%;
+    thead:first-of-type { 
+        border-bottom: 2px solid #9c9b9b;
+        h4 {
+            margin: 0px;
+            color: #848383;
+            font-size: 1rem;
+            font-weight: 200;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+        }
+        h2 {
+            margin: 0px;
+        }
+        img {
+            width: 90%;
+            margin: auto;
+            max-width: 200px;
+        }
+        td {
+            padding: 10px;
+        }
+    }
+    tbody td{
+        padding: 20px;
+    }
+}
+
+//TASK FORM
+.ae-content {
+    width: calc(100% - 195px);
+}
+.compact-side-menu .ae-content {
+    width: calc(100% - 61px);
+}
+.ae-top-menu {
+    margin: -20px -20px 14px -20px;
+    padding: 12px 20px;
+    background: #eceef4;
+    font-size: 1rem;
+    height:50px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    .value-pair .label, .value-pair .value {
+        font-size:0.8rem;
+    }
+}
+.task-form {
+    .support-ticket-content-w{
+        box-shadow: none !important;
+        padding: 0px !important;
+    }
+    .support-ticket-content{
+        padding: 0px 5px !important;
+    }
+    .ticket-reply {
+        padding-bottom: 10px !important;
+        margin-top: 10px !important;
+    }
+    .ticket-reply-info {
+        padding:0px !important;
+        margin:0px !important;
+    }
+    .ticket-reply-content {
+        padding: 7px 15px !important;
+        margin-left: 40px !important;
+    }
+    .balance.element-box {
+        background: rgba(236, 238, 245, 0.5) !important;
+        margin: 0px !important;
+        width: 100%;
+    }
+    .element-balances {
+        padding: 0px !important;
+    }
+}
+.trending.smaller {
+    font-size: 0.6rem !important;
+    line-height: 0.9rem !important;
+}
+
+
+//PUBLIC REPORT
+.public-report {
+    -webkit-box-shadow : 0px 0px 50px rgba(126, 142, 177, 0.32);
+    box-shadow : 0px 0px 50px rgba(126, 142, 177, 0.32);
+    .infographic i.b1 {
+        font-size: 2rem;
+    }
+    .infographic i.b2 {
+        font-size: 1.5rem;
+    }
+    .infographic i.b3 {
+        font-size: 1rem;
+    }
+    legend span {
+        font-size: 1.2rem;
+    }
+    .contact-details {
+        h5 {
+            font-size: 14px;
+            margin: 10px 0px 4px;
+            border-left: 2px solid #faba38;
+            padding-left: 3px;
+        }
+        .value {
+            padding-left: 5px;
+            color: #565656;
+        }
+    }
+}
+
+//ON PRINT
+@media print {
+    .menu-mobile, .menu-w, .top-bar, .breadcrumb, .element-actions, .element-header, #toast-container {
+        display:none !important;
+    }
+    body, .all-wrapper, .layout-w, .content-w, .content-i,  .content-box, .print-ready {
+		width : 100% !important;
+		float: none !important;
+		margin: 0px !important;
+		padding : 0px !important;
+		display: block !important;
+		background: #fff !important;
+		position: inherit !important;
+    }
+    #print-wrapper {
+        zoom:0.85;
+    }
+    // Payment and collection orders: the theme pads them 100px all round for the screen; on paper an order
+    // and its signatures fit on one sheet
+    .invoice-w {
+        max-width: none;
+        padding: 0 0 10px;
+        // above the decorative diagonal, which the shorter header no longer clears
+        > * {
+            position: relative;
+            z-index: 2;
+        }
+        // the phone layout stacks these, and a page is phone-narrow: company and provider side by side
+        .infos {
+            display: flex;
+            .info-2 {
+                padding-top: 0;
+                text-align: right;
+            }
+        }
+    }
+    .invoice-footer {
+        margin-top: 2rem;
+    }
+    // Long labels in badges (project names in the donor report) wrap instead of pushing tables off the page
+    .badge {
+        white-space: normal;
+    }
+    // A portrait page (~740px) is narrower than the md breakpoint: md columns stay side by side as on screen
+    @for $i from 1 through $grid-columns {
+        .col-md-#{$i} {
+            @include make-col($i, $grid-columns);
+        }
+    }
+}
+
+.blue, .info:not(.icon), .primary:not(.icon) {
+    background-color: inherit!important;
+}

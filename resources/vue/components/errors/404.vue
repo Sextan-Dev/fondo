@@ -1,0 +1,22 @@
+<template>
+
+        <div class="big-error-w">
+            <h1>
+                404
+            </h1>
+            <h5>
+                Page not Found
+            </h5>
+            <h4>
+                Oops, Something went missing...
+            </h4>
+            <form>
+                <div class="input-group">
+                <input class="form-control" placeholder="Enter your search query here" type="text">
+                <div class="input-group-btn">
+                    <button class="btn btn-primary">Search</button>
+                </div>
+                </div>
+            </form>
+        </div>
+</template>

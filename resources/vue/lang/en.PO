@@ -1,0 +1,14 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: easygettext\n"
+"Project-Id-Version: \n"
+
+"Language: es\n"
+
+#: resources/vue/components/login/Login.vue:12
+msgid "Username"
+msgstr "efdr"
+msgid "The password field is required."
+msgstr "La contradeña es requerida"

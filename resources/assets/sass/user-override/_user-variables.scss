@@ -1,0 +1,6 @@
+// Add variables here to override theme variables
+
+// Printing: the printer's own paper and orientation. Bootstrap's defaults (an A3 page, body at least
+// 992px wide) shrank every printout and cut off wide reports; see "ON PRINT" in _user-styles.scss.
+$print-page-size: auto;
+$print-body-min-width: 0;
