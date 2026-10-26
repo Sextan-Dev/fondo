@@ -6,6 +6,8 @@
 !public/.htaccess
 /storage/*.key
 /storage/logs/*
+/storage/app/tmp/*
+/database/*.sql
 /vendor
 /.idea
 /.vagrant
