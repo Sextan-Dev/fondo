@@ -8,7 +8,7 @@
                     <button type="button" class="btn btn-sm btn-white" @click="$router.push({name: 'OperationForm'})">
                         <i class="icon-feather-plus"></i><span class="db-action-label"> Nueva operación</span>
                     </button>
-                    <button type="button" class="btn btn-sm btn-white" :disabled="!sources.length" @click="exportExcel">
+                    <button type="button" class="btn btn-sm btn-white" :disabled="!shown.length" title="Descarga las fuentes que se muestran" @click="exportExcel">
                         <i class="icon-feather-download"></i><span class="db-action-label"> Excel</span>
                     </button>
                     <button type="button" class="btn btn-sm btn-primary" :disabled="!rows" @click="print">
@@ -50,8 +50,15 @@
             <template v-else>
                 <!-- TABLE -->
                 <section class="element-box db-section">
+                    <div class="db-toolbar">
+                        <div class="db-search">
+                            <i class="icon-feather-search"></i>
+                            <input v-model="search" type="search" class="form-control" placeholder="Buscar donante o fuente"
+                                   autocomplete="off" aria-label="Buscar donante o fuente">
+                        </div>
+                    </div>
                     <p class="db-print-filter">
-                        {{number(sources.length)}} fuentes de {{number(groups.length)}} donantes · importes en pesos
+                        <template v-if="search">Búsqueda «{{search}}» · </template>{{number(shown.length)}} fuentes de {{number(groups.length)}} donantes · importes en pesos
                     </p>
 
                     <div v-if="!rows" class="db-skeleton" aria-label="Cargando saldos">
@@ -59,8 +66,15 @@
                     </div>
 
                     <div v-else-if="!groups.length" class="db-empty">
-                        <i class="icon-feather-users"></i>
-                        <p>No hay donantes con operaciones hasta {{monthLabel.toLowerCase()}}.</p>
+                        <template v-if="search">
+                            <i class="icon-feather-search"></i>
+                            <p>No encontramos donantes ni fuentes con «{{search}}».</p>
+                            <button type="button" class="btn btn-white btn-sm" @click="search = ''">Ver todas las fuentes</button>
+                        </template>
+                        <template v-else>
+                            <i class="icon-feather-users"></i>
+                            <p>No hay donantes con operaciones hasta {{monthLabel.toLowerCase()}}.</p>
+                        </template>
                     </div>
 
                     <div v-else class="db-table-wrap" :class="{'is-loading': loading}">
@@ -107,7 +121,7 @@
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <th class="db-name" scope="row">Total <small>{{number(sources.length)}} fuentes · {{number(groups.length)}} donantes</small></th>
+                                    <th class="db-name" scope="row">Total <small>{{number(shown.length)}} fuentes · {{number(groups.length)}} donantes</small></th>
                                     <td v-for="col in COLUMNS" :key="col.key" class="db-amount" :class="cellClass(col, totals[col.key])">{{amount(totals[col.key])}}</td>
                                 </tr>
                             </tfoot>
@@ -143,6 +157,8 @@
     ];
     const MONTH_COLUMNS = COLUMNS.filter(col => col.band);
     const zeros = () => Object.fromEntries(COLUMNS.map(col => [col.key, 0]));
+    // Search ignores case and accents: "mexico" finds "MÉXICO".
+    const normalize = value => String(value == null ? '' : value).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
     const byName = (a, b) => a.localeCompare(b, 'es', { sensitivity: 'base', numeric: true });
 
 	export default {
@@ -155,6 +171,7 @@
                 rows: null,
                 loading: false,
                 error: '',
+                search: '',
                 sort: { key: 'donor', desc: false },
                 generatedAt: moment().format('DD/MM/YYYY HH:mm'),
                 request: 0
@@ -171,14 +188,15 @@
             monthEnd(){
                 return moment(this.month + '-01').endOf('month').format('DD/MM/YYYY');
             },
-            // Every source of the month, with or without balance or movements
-            sources(){
-                return this.rows || [];
+            // Every source of the month, with or without balance or movements, that matches the search
+            shown(){
+                let terms = normalize(this.search).split(/\s+/).filter(Boolean);
+                return (this.rows || []).filter(row => terms.every(term => row.searchKey.includes(term)));
             },
-            // One group per donor, with the totals of its sources, in the chosen order
+            // One group per donor, with the totals of the sources shown, in the chosen order
             groups(){
                 let groups = new Map();
-                this.sources.forEach(row => {
+                this.shown.forEach(row => {
                     if (!groups.has(row.id)) {
                         groups.set(row.id, { id: row.id, donor: row.donor, rows: [], totals: zeros() });
                     }
@@ -200,7 +218,7 @@
             },
             totals(){
                 let totals = zeros();
-                this.sources.forEach(row => COLUMNS.forEach(col => { totals[col.key] += row.cents[col.key]; }));
+                this.shown.forEach(row => COLUMNS.forEach(col => { totals[col.key] += row.cents[col.key]; }));
                 return totals;
             }
         },
@@ -261,6 +279,7 @@
                             id: row.id,
                             donor: row.donor,
                             source,
+                            searchKey: normalize(row.donor + ' ' + source),
                             cents: Object.freeze(rowCents)
                         });
                     }));
@@ -286,7 +305,7 @@
                 }));
                 let sheet = [
                     [{ value: 'Saldos de donantes · ' + this.monthLabel, style: 'bold' }],
-                    ['Generado el ' + this.generatedAt],
+                    [(this.search ? 'Búsqueda «' + this.search + '» · generado el ' : 'Generado el ') + this.generatedAt],
                     [],
                     header.map(value => ({ value, style: 'bold' }))
                 ].concat(lines, [
@@ -399,6 +418,26 @@
     .donors-balance .db-section {
         padding: 1.25rem 1.5rem 1rem;
     }
+
+    /* SEARCH */
+    .donors-balance .db-toolbar {
+        margin-bottom: 1rem;
+    }
+    .donors-balance .db-search {
+        position: relative;
+        max-width: 360px;
+    }
+    .donors-balance .db-search i {
+        position: absolute;
+        top: 50%;
+        left: .8rem;
+        color: rgba(90, 99, 126, .7);
+        transform: translateY(-50%);
+    }
+    .donors-balance .db-search .form-control {
+        padding-left: 2.2rem;
+    }
+
     /* TABLE: scrolls inside its box so the headers and the names stay in view */
     .donors-balance .db-table-wrap {
         max-height: calc(100vh - 230px);
@@ -653,6 +692,7 @@
         .donors-balance .db-header,
         .donors-balance .db-period,
         .donors-balance .db-screen,
+        .donors-balance .db-toolbar,
         .donors-balance .db-state {
             display: none !important;
         }
