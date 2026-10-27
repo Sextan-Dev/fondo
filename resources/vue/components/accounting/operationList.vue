@@ -22,8 +22,23 @@
                 </span>
             </h6>
 
+            <!-- ONE IMPORT: every operation it booked, whatever the period -->
+            <div v-if="importId" class="element-box ol-import-banner" role="status">
+                <i class="icon-feather-layers"></i>
+                <div class="ol-import-text">
+                    <strong>Registros de la carga #{{importId}}</strong>
+                    <span v-if="importInfo">
+                        {{plain(importInfo.original_name)}} · {{count(importInfo.rows_count)}} ingresos · subida el {{shortDate(String(importInfo.date).slice(0, 10))}}
+                        <span v-if="importInfo.status == 0" class="ol-import-reverted">Revertida</span>
+                    </span>
+                </div>
+                <button type="button" class="btn btn-sm btn-white" @click="clearImport">
+                    <i class="icon-feather-x"></i> <translate>Ver todas las operaciones</translate>
+                </button>
+            </div>
+
             <!-- FILTERS: one line on phones until opened, so the operations show without scrolling -->
-            <div class="element-box ol-filters" :class="{'is-open': filtersOpen}">
+            <div v-show="!importId" class="element-box ol-filters" :class="{'is-open': filtersOpen}">
                 <button type="button" class="ol-filters-toggle" @click="filtersOpen = !filtersOpen" :aria-expanded="filtersOpen ? 'true' : 'false'" aria-controls="ol-filters-body">
                     <i class="icon-feather-sliders"></i>
                     <span class="ol-filters-summary">{{filtersSummary}}</span>
@@ -140,18 +155,22 @@
                 </form>
             </div>
         </div>
+
+        <income-import ref="incomeImport" @imported="onImported"></income-import>
     </div>
 </template>
 
 <script>
     import {api} from "../../config/jwt-routes";
     import {escapeHtml, plainText} from "../../core/helpers.js";
+    import IncomeImport from "./incomeImport.vue";
 
     // Kept for the session, so coming back from an edit shows the same operations.
     const FILTERS_KEY = 'operationList.filters';
 
     const IMPORTS = {
-        incomes: { label: 'Ingresos', entity: 'Ingresos', title: 'Registro masivo de Ingresos', url: 'importMasiveIncomes', layout: '/files/operations/imports/layout.xlsx', support: false },
+        // checked and confirmed in its own modal (incomeImport.vue)
+        incomes: { label: 'Ingresos', support: false },
         projects: { label: 'Proyectos', entity: 'Proyectos', title: 'Registro masivo de Proyectos y Costo Operativo', url: 'importMasiveProjects', layout: '/files/operations/imports/layout.csv', support: true },
         outcomes: { label: 'Egresos', entity: 'Egresos', title: 'Registro masivo de Egresos', url: 'importMasiveOutcomes', layout: '/files/operations/imports/layout.csv', support: true },
         transfers: { label: 'Traspasos', entity: 'Traspasos', title: 'Registro masivo de Traspasos', url: 'importMasiveTransfers', layout: '/files/operations/imports/layout.csv', support: true }
@@ -187,6 +206,7 @@
     }
 
     export default {
+        components: { IncomeImport },
         props:['appDomain','siteName', 'auth'],
         data(){
             let saved = storedFilters();
@@ -202,7 +222,10 @@
                 summary: null,
                 summaryStale: true,
                 filtersOpen: false,
-                importKey: 'incomes',
+                // The import whose operations are shown (?carga=), and its history row
+                importId: Number(this.$route.query.carga) || null,
+                importInfo: null,
+                importKey: 'outcomes',
                 uploading: false,
                 pickerOptions: {
                     firstDayOfWeek: 1,
@@ -297,6 +320,9 @@
                 let date = new Date(plainText(value) + 'T00:00:00');
                 return isNaN(date) ? '' : date.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
             },
+            plain(value) {
+                return plainText(value);
+            },
             // FILTERS
             saveFilters() {
                 try {
@@ -346,6 +372,10 @@
 
             // IMPORTS
             openImport(key) {
+                if (key == 'incomes') {
+                    this.$refs.incomeImport.open();
+                    return;
+                }
                 this.importKey = key;
                 this.$nextTick(() => {
                     this.errors.clear('import');
@@ -384,6 +414,35 @@
                         }
                     });
                 });
+            },
+
+            onImported() {
+                this.summaryStale = true;
+                this.reloadTable();
+            },
+            loadImportInfo() {
+                var vm = this;
+                vm.importInfo = null;
+                if (!vm.importId) {
+                    return;
+                }
+                axios.post(api.historyOperationShow, { id: vm.importId })
+                .then(function (response) {
+                    if (response.data.success) {
+                        vm.importInfo = response.data.history;
+                    } else {
+                        toastr.error(response.data.msg);
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+            },
+            showImport(id) {
+                this.$router.push({ name: 'OperationList', query: { carga: id } }).catch(() => {});
+            },
+            clearImport() {
+                this.$router.replace({ name: 'OperationList' }).catch(() => {});
             },
 
             // UPDATE ACTIVE 1 -> 0
@@ -432,6 +491,9 @@
                         break;
                     case 'delete':
                         this.deleteItem(id, target.attr('data-transfer') == 1 ? 'transfer' : 'item');
+                        break;
+                    case 'import':
+                        this.showImport(id);
                         break;
                 }
             },
@@ -506,6 +568,7 @@
                 }
                 let id = escapeHtml(row.id);
                 let contact = plainText(row.client) ? escapeHtml(row.client) : 'Sin contacto';
+                let importId = Number(plainText(row.history_operation_id));
                 let parts = [
                     '<span class="ol-inline is-date ol-eyebrow">' + escapeHtml(this.shortDate(row.date)) + '</span>',
                     row.transfer == 1
@@ -517,6 +580,10 @@
                 }
                 if (plainText(row.project_name)) {
                     parts.push('<span class="ol-project" title="' + escapeHtml(row.project_name) + '"><i class="icon-feather-folder"></i><span>' + escapeHtml(row.project_name) + '</span></span>');
+                }
+                // Booked by an income import: opens every operation of that import
+                if (importId && !this.importId) {
+                    parts.push('<a href="/operation/list?carga=' + importId + '" class="ol-import-tag" title="Ver todos los registros de esta carga" data-action="import" data-id="' + importId + '"><i class="icon-feather-layers"></i><span>Carga #' + importId + '</span></a>');
                 }
                 let tags = this.categoryTags(row);
                 if (tags) {
@@ -671,10 +738,11 @@
                         data: function (data) {
                             $.extend(data, {
                                 category: vm.category,
-                                project: vm.project,
+                                project: vm.importId ? 'all' : vm.project,
                                 from: vm.range[0],
                                 to: vm.range[1],
-                                contact: vm.donor,
+                                contact: vm.importId ? 'all' : vm.donor,
+                                history: vm.importId || '',
                                 summary: vm.summaryStale
                             });
                         },
@@ -702,9 +770,25 @@
                 $(vm.$refs.table).on('click', '[data-action]', vm.onAction);
             }
         },
+        watch: {
+            // Coming from the history or the banner: same screen, another set of operations
+            '$route.query.carga'(value) {
+                this.importId = Number(value) || null;
+                if (this.importId) {
+                    this.category = 'all';
+                }
+                this.loadImportInfo();
+                this.summaryStale = true;
+                this.reloadTable();
+            }
+        },
         mounted: function(){
             // The table doesn't need the filter options: load both at once.
             this.loadFilterOptions();
+            if (this.importId) {
+                this.category = 'all';
+                this.loadImportInfo();
+            }
             this.initTable();
         },
         beforeDestroy() {
@@ -1125,6 +1209,69 @@
     .operation-list .ol-btn.is-disabled:hover {
         background-color: transparent;
         color: #6b7489;
+    }
+
+    .operation-list a.ol-import-tag {
+        display: inline-flex;
+        align-items: center;
+        align-self: flex-start;
+        justify-self: start;
+        gap: .3rem;
+        padding: 0 .4rem;
+        border-radius: 3px;
+        background-color: var(--ol-blue-soft);
+        font-size: .7rem;
+        line-height: 1.5;
+        color: var(--ol-blue);
+    }
+    .operation-list a.ol-import-tag:hover {
+        text-decoration: none;
+        background-color: rgba(4, 123, 248, .16);
+    }
+    .operation-list a.ol-import-tag i {
+        font-size: 10px;
+    }
+
+    /* IMPORT BANNER */
+    .operation-list .ol-import-banner {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        margin-bottom: 1rem;
+        padding: .8rem 1.1rem;
+        border-left: 3px solid var(--ol-blue);
+    }
+    .operation-list .ol-import-banner > i {
+        font-size: 1.1rem;
+        color: var(--ol-blue);
+    }
+    .operation-list .ol-import-text {
+        flex: 1 1 auto;
+        min-width: 0;
+        font-size: .85rem;
+        color: var(--ol-soft-text);
+        overflow-wrap: anywhere;
+    }
+    .operation-list .ol-import-text strong {
+        display: block;
+        color: var(--ol-text);
+    }
+    .operation-list .ol-import-reverted {
+        margin-left: .35rem;
+        padding: 0 .4rem;
+        border-radius: 3px;
+        background-color: var(--ol-red-soft);
+        color: var(--ol-red);
+        font-size: .72rem;
+        font-weight: 600;
+    }
+    .operation-list .ol-import-banner .btn {
+        flex: 0 0 auto;
+    }
+    @media (max-width: 575px) {
+        .operation-list .ol-import-banner {
+            flex-wrap: wrap;
+        }
     }
 
     /* Inside the operation cell, only for what Responsive could not show as a column */

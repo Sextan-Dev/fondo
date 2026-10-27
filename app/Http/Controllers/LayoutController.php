@@ -15,9 +15,7 @@ use Carbon\Carbon;
 use PhpParser\Node\Expr\AssignOp\Concat;
 use Maatwebsite\Excel\Facades\Excel;
 use Rap2hpoutre\FastExcel\FastExcel;
-use App\OperationHistory;
 
-use App\Imports\Operations\Incomes;
 use App\Imports\Operations\Outcomes;
 use App\Imports\Operations\Transfers;
 use App\Imports\Operations\Projects;
@@ -48,44 +46,6 @@ class LayoutController extends Controller
             }
         }catch(\Exception $e ){
             return ['success' => false , 'msg' =>  _("Oups... Un Error ha ocurrido: ").$e->getMessage(). ' - ' .$e->getFile() .$e->getLine()];
-        }
-    }
-
-    public function uploadMasiveIncomes(Request $request){
-        try{
-            if($request->has('incomes')) {
-                $file = \Request::file('incomes');
-
-                $filename = 'incomes_' . date('YmdHis') . '.xlsx';
-                \Storage::disk('local')->put('tmp/' . $filename,  \File::get($file));
-
-                if(file_exists(storage_path('app/tmp') . '/' . $filename)){
-                    
-                    $result = Excel::import(new Incomes(), $request->file('incomes') );
-
-                    $dataHistory = [
-                        'user_id' => authUser('id'),
-                        'status' => 1,
-                        'original_name' => $file->getClientOriginalName(),
-                        'import_key' => $filename
-                    ];
-                    $storeOperationH = new OperationHistory;
-                    $storeOperationH->fill($dataHistory);
-                    $storeOperationH->save();
-    
-                    return [
-                        'success' => true,
-                        'result' => $result,
-                        'msg' => 'Importation réussie'
-                    ];
-                }else{
-                    return ['success' => false , 'msg' =>  _("Oups... Un Error ha ocurrido: file not found or not upload")];
-                }
-            }else{
-                return ['success' => false , 'msg' =>  _("Oups... Un Error ha ocurrido: file not found or not upload")];
-            }
-        }catch(\Exception $e ){
-            return ['success' => false , 'msg' =>  _("Oups... Un Error ha ocurrido: ").$e->getMessage()];
         }
     }
 
