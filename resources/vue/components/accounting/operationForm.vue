@@ -415,66 +415,8 @@
                 optionsContacts:[],
                 optionsAllContacts:[],
                 optionsDonors:[],                
-                optionsCategories:{                  
-                    "AVN": [
-                        "AVN"
-                    ],
-                    "Corporativo": [
-                        "Matching",
-                        "Nacional",
-                        "Internacional",
-                        "Voluntariado",
-                        "Plataformas"
-                    ],
-                    "Reciclaje": [
-                        "Plastico",
-                        "Unicel",
-                        "Carton",
-                        "Metales",
-                        "Otros"
-                    ],
-                    "Especie": [
-                        "Articulos de limpieza e higiene personal",
-                        "Papeleria",
-                        "Alimentos",
-                        "Electrodomesticos",
-                        "Electronica",
-                        "Juguetes",
-                        "Medicamentos",
-                        "Mobiliarios y equipo de oficina",
-                        "Otros"
-                    ],
-                    "Emergencias": [
-                        "Nacional",
-                        "Internacional",
-                        "Individuales",
-                        "Plataforma"
-                    ],
-                    "Donativos Individuales": [
-                        "Plataforma",
-                        "Nacional",
-                        "Internacional",
-
-                    ],                    
-                    "No identificados": [
-                        "Nacional",
-                        "Internacional"
-                    ],
-                    "Remanentes": [
-                        "Remanentes de proyectos",
-                        "Extraordinarios"
-                    ],
-                    "Liberaciones": [
-                        "Liberaciones CDMX",
-                        "Fee"
-                    ],
-                    "Costo Operativo": [
-                        "Costo Operativo"
-                    ],
-                    "RESERVA RETENCIÓN CO": [
-                        "RESERVA RETENCIÓN CO"
-                    ]
-                },
+                // Income classifications => subclassifications, from config/operations.php
+                optionsCategories:{},
                 optionsCategoriesOrigin:[],
                 optionsSubCategoriesOrigin:[],
                 optionsSubCategoriesTarget:[],
@@ -695,6 +637,7 @@
                         vm.optionsMode = response.data.mode                        
                         vm.optionsFee = response.data.fee
                         vm.optionsMonitoring = response.data.monitoring
+                        vm.optionsCategories = response.data.incomeCategories
                         vm.optionsProjects = response.data.projects                        
                         vm.optionsContactsAvailables = response.data.contacts
                         vm.optionsContactsAllAvailables = response.data.allContacts

@@ -55,7 +55,8 @@ class Operation extends Model
         'percentage_operating_cost',
         'val_operating_cost',
         'movement_id',
-        'is_co'
+        'is_co',
+        'history_operation_id'
     );
 
     public function company()
