@@ -21,8 +21,18 @@ router.beforeEach(async (to, from, next) => {
 	
 	// IF REFRESH RENEW USERINFO 
 	if (jwtToken.getToken() && !store.getters.isLoggedIn) {
-		let {data: authUser} = await axios.post(api.userSession);
-		await store.dispatch('setAuthUser', authUser);
+		try {
+			let {data: authUser} = await axios.post(api.userSession);
+			// session() answers 200 {success:false} when it fails server side
+			if (!authUser || !authUser.id) {
+				throw new Error('Invalid session');
+			}
+			await store.dispatch('setAuthUser', authUser);
+		} catch (e) {
+			// A throw here used to leave the navigation pending forever (blank screen).
+			// Drop the stored session; requiresAuth below sends the user to login.
+			jwtToken.clearSession();
+		}
 	}
 
 	// IF PAGE NOT FOUND REDIRECT 404 VIEW

@@ -131,13 +131,15 @@ axios.interceptors.response.use(
 		return response;
 }, error => {
 
-	let errorResponseData = error.response.data;
-	const errors = ["token_invalid", "token_expired", "token_not_provided"];
-	if (errorResponseData.error && errors.includes(errorResponseData.error)) {
+	if (jwtToken.isInvalid(error)) {
+		const wasLoggedIn = store.getters.isLoggedIn;
+		jwtToken.clearSession();
 		store.dispatch('unsetAuthUser')
 		.then(() => {
-			jwtToken.removeToken();
-			router.push({name: 'login'});
+			// While booting, router.beforeEach picks the destination; only kick a live session out here.
+			if (wasLoggedIn) {
+				router.push({name: 'login'}).catch(() => {});
+			}
 		});
 	}
 	return Promise.reject(error);
