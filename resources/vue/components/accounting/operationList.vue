@@ -37,6 +37,47 @@
                 </button>
             </div>
 
+            <!-- FEE and counts of the whole history: they don't change with the filters -->
+            <div class="element-filters">
+                <h6 class="element-header mb-3" v-translate>FEE & Costo de Operación</h6>
+                <div class="row">
+                    <div class="form-check form-filter-large col-md-3" >
+                        <a class="element-box el-tablo">
+                            <div class="label mb-2">
+                                <span>FEE</span>
+                            </div>
+                            <div class="value">
+                                <label class="form-check-label">
+                                    <span><small>$</small>{{ formatPrice(fee||0).split('.')[0]}}<small><small>.{{ formatPrice(fee||0).split('.')[1]}}</small></small></span>
+                                </label>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="element-filters">
+                <h6 class="element-header mb-3" v-translate>Tipo de Operacion</h6>
+                <div class="row">
+                    <div class="form-check form-filter-large col-md-3" v-for="(cat , index) in types" :key="index" >
+                        <a class="element-box el-tablo">
+                            <div class="label mb-2">
+                                <translate>Operación</translate>
+                            </div>
+                            <div class="value">
+                                <label class="form-check-label">
+                                    <input class="form-check-input" name="category" @change="onCategoryChange" type="radio" :value="cat.value" v-model="category" >
+                                    <span>{{cat.name}}</span>
+                                </label>
+                            </div>
+                            <div class="trending hidden-sm-up hidden-md-down">
+                                <span class="badge badge-primary">{{cat.count}}</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
             <!-- FILTERS: one line on phones until opened, so the operations show without scrolling -->
             <div v-show="!importId" class="element-box ol-filters" :class="{'is-open': filtersOpen}">
                 <button type="button" class="ol-filters-toggle" @click="filtersOpen = !filtersOpen" :aria-expanded="filtersOpen ? 'true' : 'false'" aria-controls="ol-filters-body">
@@ -82,29 +123,6 @@
                         <i class="icon-feather-x"></i> <translate>Limpiar filtros</translate>
                     </button>
                 </div>
-            </div>
-
-            <!-- TOTALS of the period, contact and project selected, whatever the type -->
-            <div class="ol-stats" :class="{'is-loading': !summary}">
-                <div v-for="stat in stats" :key="stat.key" class="ol-stat" :title="money(stat.amount)">
-                    <span class="ol-stat-label">{{stat.label}}</span>
-                    <strong class="ol-stat-value" :class="stat.valueClass">
-                        <span class="ol-full">{{money(stat.amount)}}</span><span class="ol-compact">{{compactMoney(stat.amount)}}</span>
-                    </strong>
-                    <span v-if="stat.split" class="ol-split" :class="{'is-empty': stat.split.empty}" :title="stat.split.title">
-                        <span :style="{width: stat.split.income + '%'}"></span>
-                    </span>
-                    <span class="ol-stat-hint">{{stat.hint}}</span>
-                </div>
-            </div>
-
-            <!-- TYPE FILTER -->
-            <div class="ol-chips" :class="{'is-loading': !summary}" role="radiogroup" aria-label="Tipo de operación">
-                <label v-for="chip in typeChips" :key="chip.value" class="ol-chip" :class="{'is-active': category == chip.value}">
-                    <input class="sr-only" type="radio" name="ol-category" :value="chip.value" v-model="category" @change="onCategoryChange">
-                    <span v-if="chip.tone" class="ol-dot" :class="'is-' + chip.tone"></span>
-                    {{chip.label}} <span class="ol-chip-count">{{count(chip.count)}}</span>
-                </label>
             </div>
 
             <!-- DataTable: clearfix keeps the floated pagination from narrowing what follows -->
@@ -182,7 +200,6 @@
         balance: { label: 'Balance', tone: 'balance', icon: 'icon-feather-dollar-sign' }
     };
 
-    const EMPTY_SUMMARY = { fee: 0, all: {count: 0}, income: {count: 0, amount: 0}, outcome: {count: 0, amount: 0}, balance: {count: 0, amount: 0} };
 
     // Display columns that Responsive may hide: their content then shows inside the operation cell.
     const INLINE_COLUMNS = ['date', 'category', 'donor', 'pay', 'retention', 'amount', 'actions'];
@@ -218,9 +235,9 @@
                 optionsDonors: [],
                 optionsProjects: [],
                 datatable: null,
-                // Totals per type for the current filters; requested again only when the filters change.
-                summary: null,
-                summaryStale: true,
+                // Counts per type and FEE of the whole history (operation/index)
+                types: [],
+                fee: 0,
                 filtersOpen: false,
                 // The import whose operations are shown (?carga=), and its history row
                 importId: Number(this.$route.query.carga) || null,
@@ -267,54 +284,15 @@
                     parts.push(project ? project.name : 'Un proyecto');
                 }
                 return parts.join(' · ');
-            },
-            stats() {
-                let s = this.summary || EMPTY_SUMMARY;
-                let income = s.income.amount;
-                let outcome = s.outcome.amount;
-                let moved = income + outcome;
-                let incomeShare = moved ? Math.round(income * 100 / moved) : 0;
-                return [
-                    { key: 'income', label: 'Ingresos', amount: income, valueClass: 'is-income', hint: this.operations(s.income.count) },
-                    { key: 'outcome', label: 'Egresos', amount: outcome, valueClass: 'is-outcome', hint: this.operations(s.outcome.count) },
-                    { key: 'net', label: 'Neto', amount: income - outcome, valueClass: this.signClass(income - outcome), hint: 'Ingresos menos egresos',
-                        split: { income: incomeShare, empty: !moved, title: moved ? 'Ingresos ' + incomeShare + '% · Egresos ' + (100 - incomeShare) + '%' : '' } },
-                    { key: 'fee', label: 'FEE', amount: s.fee, valueClass: '',
-                        hint: income ? (Math.round(s.fee * 1000 / income) / 10) + '% de los ingresos' : 'Sin ingresos en el periodo' }
-                ];
-            },
-            typeChips() {
-                let s = this.summary || EMPTY_SUMMARY;
-                let chips = [
-                    { value: 'all', label: 'Todas', count: s.all.count },
-                    { value: 'income', label: 'Ingresos', tone: 'income', count: s.income.count },
-                    { value: 'outcome', label: 'Egresos', tone: 'outcome', count: s.outcome.count }
-                ];
-                if (s.balance.count || this.category == 'balance') {
-                    chips.push({ value: 'balance', label: 'Balance', tone: 'balance', count: s.balance.count });
-                }
-                return chips;
             }
         },
         methods: {
-            // In cents: float sums leave residues such as 7e-12 for a zero amount.
-            signClass(value) {
-                let cents = Math.round(value * 100);
-                return cents > 0 ? 'is-income' : (cents < 0 ? 'is-outcome' : 'is-zero');
-            },
             money(value) {
                 value = Number(value) || 0;
                 return (Math.round(value * 100) < 0 ? '-$' : '$') + this.formatPrice(Math.abs(value));
             },
-            compactMoney(value) {
-                value = Number(value) || 0;
-                return (Math.round(value * 100) < 0 ? '-$' : '$') + Math.abs(value).toLocaleString('es-MX', { notation: 'compact', maximumFractionDigits: 1 });
-            },
             count(value) {
                 return (Number(value) || 0).toLocaleString('en');
-            },
-            operations(value) {
-                return this.count(value) + (value == 1 ? ' operación' : ' operaciones');
             },
             shortDate(value) {
                 let date = new Date(plainText(value) + 'T00:00:00');
@@ -332,12 +310,10 @@
                 }
             },
             onFiltersChange() {
-                this.summaryStale = true;
                 this.saveFilters();
                 this.reloadTable();
             },
             onCategoryChange() {
-                // The totals don't depend on the type, only the rows do.
                 this.saveFilters();
                 this.reloadTable();
             },
@@ -349,11 +325,13 @@
             },
             loadFilterOptions: async function(){
                 var vm = this;
-                await axios.post(api.listOperation, {filters_only: true})
+                await axios.post(api.listOperation)
                 .then(function (response) {
                     if(response.data.success){
                         vm.optionsDonors = response.data.contacts
                         vm.optionsProjects = response.data.projects
+                        vm.types = response.data.type
+                        vm.fee = response.data.fee
                     }else{
                         toastr.error(response.data.msg);
                     }
@@ -397,7 +375,6 @@
                         if(response.data.success){
                             toastr.success(response.data.msg);
                             $(vm.$refs.importModal).modal('hide');
-                            vm.summaryStale = true;
                             vm.reloadTable();
                         }else{
                             toastr.error(response.data.msg);
@@ -417,7 +394,6 @@
             },
 
             onImported() {
-                this.summaryStale = true;
                 this.reloadTable();
             },
             loadImportInfo() {
@@ -460,7 +436,6 @@
                         axios.post(api.deleteOperation, {id:id})
                         .then(function (response) {
                             if(response.data.success){
-                                vm.summaryStale = true;
                                 vm.reloadTable(true);
                                 swal({ html : response.data.msg, type: "success", timer: 1500 });
                             }else{
@@ -649,7 +624,6 @@
                         dt.one('preXhr', function (xhrEvent, settings, data) {
                             data.start = 0;
                             data.length = -1;
-                            data.summary = false;
                             // export the full set instead of drawing it, then load the page that was on screen
                             dt.one('preDraw', function () {
                                 base.action.call(self, e, dt, button, config);
@@ -709,11 +683,20 @@
                     searchDelay: 400,
                     pageLength: 25,
                     lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-                    order: [[col('date'), 'desc'], [col('id'), 'desc']],
+                    // As in the previous version: by id, oldest first
+                    order: [[col('id'), 'asc']],
                     stateSave: true,
                     stateDuration: -1,
-                    // Visibility isn't up to the user here: a saved state must not show the export columns.
-                    stateLoadParams: (settings, state) => (state.columns || []).forEach(column => delete column.visible),
+                    stateSaveParams: (settings, state) => { state.idOrder = true; },
+                    stateLoadParams: (settings, state) => {
+                        // Visibility isn't up to the user here: a saved state must not show the export columns.
+                        (state.columns || []).forEach(column => delete column.visible);
+                        // States saved while the list was ordered by date: start again from the id order
+                        if (!state.idOrder) {
+                            delete state.order;
+                            delete state.start;
+                        }
+                    },
                     buttons: [
                         {
                             extend: 'collection',
@@ -742,8 +725,7 @@
                                 from: vm.range[0],
                                 to: vm.range[1],
                                 contact: vm.importId ? 'all' : vm.donor,
-                                history: vm.importId || '',
-                                summary: vm.summaryStale
+                                history: vm.importId || ''
                             });
                         },
                         dataSrc: function (json) {
@@ -751,10 +733,6 @@
                                 toastr.error(json.msg);
                                 json.recordsTotal = json.recordsFiltered = 0;
                                 return [];
-                            }
-                            if (json.summary) {
-                                vm.summary = json.summary;
-                                vm.summaryStale = false;
                             }
                             return json.data;
                         }
@@ -778,7 +756,6 @@
                     this.category = 'all';
                 }
                 this.loadImportInfo();
-                this.summaryStale = true;
                 this.reloadTable();
             }
         },
@@ -902,119 +879,24 @@
         padding-right: 0;
     }
 
-    /* TOTALS */
-    .operation-list .ol-stats {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: .75rem;
-        margin-bottom: 1rem;
+    /* CARDS: FEE and counts per type, as in the previous version */
+    .operation-list .form-filter-large .value .form-check-label span {
+        font-size: 16px;
+        font-weight: 700;
     }
-    .operation-list .ol-stat {
-        display: flex;
-        flex-direction: column;
-        min-width: 0;
-        padding: .9rem 1.1rem;
-        border-radius: 6px;
-        background-color: #fff;
-        box-shadow: 0 2px 4px rgba(126, 142, 177, .12);
+    .operation-list .form-filter-large .label {
+        font-size: 12px;
     }
-    .operation-list .ol-stat-label {
-        font-size: .68rem;
-        letter-spacing: .6px;
-        text-transform: uppercase;
-        color: var(--ol-muted);
+    .operation-list .el-tablo .value {
+        font-size: 16px;
     }
-    .operation-list .ol-stat-value {
-        margin-top: .2rem;
-        font-size: 1.3rem;
-        line-height: 1.2;
-        color: var(--ol-text);
-        font-variant-numeric: tabular-nums;
-        overflow-wrap: anywhere;
-    }
-    .operation-list .ol-stat-hint {
-        margin-top: .1rem;
-        font-size: .75rem;
-        color: var(--ol-muted);
-    }
-    .operation-list .ol-stats.is-loading .ol-stat-value,
-    .operation-list .ol-stats.is-loading .ol-stat-hint,
-    .operation-list .ol-stats.is-loading .ol-split,
-    .operation-list .ol-chips.is-loading .ol-chip-count {
-        opacity: .35;
-    }
-    /* how the money that moved splits between incomes (green) and outcomes (red) */
-    .operation-list .ol-split {
-        display: flex;
-        height: 4px;
-        margin-top: .4rem;
-        border-radius: 2px;
-        background-color: var(--ol-red);
-        overflow: hidden;
-    }
-    .operation-list .ol-split > span {
-        background-color: var(--ol-green);
-    }
-    .operation-list .ol-split.is-empty {
-        background-color: var(--ol-line);
-    }
+
     .operation-list .is-income {
         color: var(--ol-green);
     }
     .operation-list .is-outcome {
         color: var(--ol-red);
     }
-    .operation-list .ol-stat-value.is-zero {
-        color: var(--ol-muted);
-    }
-    .operation-list .ol-compact {
-        display: none;
-    }
-
-    /* TYPE FILTER */
-    .operation-list .ol-chips {
-        display: flex;
-        flex-wrap: wrap;
-        gap: .4rem;
-        margin-bottom: .75rem;
-    }
-    .operation-list .ol-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: .4rem;
-        margin: 0;
-        padding: .3rem .75rem;
-        border: 1px solid var(--ol-line);
-        border-radius: 999px;
-        background-color: #fff;
-        color: var(--ol-text);
-        font-size: .8rem;
-        cursor: pointer;
-    }
-    .operation-list .ol-chip:hover {
-        border-color: var(--ol-blue);
-    }
-    .operation-list .ol-chip:focus-within {
-        box-shadow: 0 0 0 3px rgba(4, 123, 248, .2);
-    }
-    .operation-list .ol-chip.is-active {
-        border-color: var(--ol-blue);
-        background-color: var(--ol-blue-soft);
-        color: var(--ol-blue);
-        font-weight: 600;
-    }
-    .operation-list .ol-chip-count {
-        color: var(--ol-muted);
-        font-weight: 400;
-    }
-    .operation-list .ol-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-    }
-    .operation-list .ol-dot.is-income { background-color: var(--ol-green); }
-    .operation-list .ol-dot.is-outcome { background-color: var(--ol-red); }
-    .operation-list .ol-dot.is-balance { background-color: var(--ol-teal); }
 
     /* TABLE */
     .operation-list .ol-table {
@@ -1339,11 +1221,6 @@
         margin-left: -.45rem;
     }
 
-    @media (max-width: 1199px) {
-        .operation-list .ol-stats {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-    }
     @media (max-width: 991px) {
         .operation-list .ol-filters-body {
             grid-template-columns: 1fr 1fr;
@@ -1392,16 +1269,6 @@
         .operation-list .ol-filters.is-open .ol-filters-body {
             display: grid;
         }
-        .operation-list .ol-stats {
-            gap: .5rem;
-            margin-bottom: .75rem;
-        }
-        .operation-list .ol-stat {
-            padding: .7rem .85rem;
-        }
-        .operation-list .ol-stat-value {
-            font-size: 1.1rem;
-        }
         .operation-list .dataTables_wrapper .dataTables_filter {
             float: none;
             text-align: left;
@@ -1438,12 +1305,6 @@
         }
         .operation-list .ol-header-actions .btn-primary i {
             margin-right: .4rem;
-        }
-        .operation-list .ol-full {
-            display: none;
-        }
-        .operation-list .ol-compact {
-            display: inline;
         }
         /* Wide enough that Responsive moves every column but the amount in here */
         .operation-list .ol-op {

@@ -32,17 +32,11 @@ class OperationController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
+    public function index()
     {
         try {
             $projects = $this->_getProjects();
             $contacts = $this->_getContacts($projects);
-
-            // The operation list only needs its filter options: its totals come with each page of operation/select.
-            if ($request->boolean('filters_only')) {
-                $success = true;
-                return compact('success', 'projects', 'contacts');
-            }
 
             // CATEGORIES
             $type = $this->_getType();
@@ -1184,9 +1178,6 @@ class OperationController extends Controller
             }
             $data = $data->where($filters);
 
-            // Totals per type for the period, before the type filter so each type card keeps its numbers.
-            $summary = $request->boolean('summary') ? $this->_operationsSummary(clone $data) : null;
-
             if( $request->category !='all' ){
                 $data->where('o.type', $request->category ==  '' ? '' :$request->category);
             }else{
@@ -1198,13 +1189,10 @@ class OperationController extends Controller
                 $data->orderBy('o.id', 'desc');
             }
 
-            $table = Datatables::of($data)
+            return Datatables::of($data)
                 // amount is a varchar: sort it as a number
-                ->orderColumn('o.amount', 'CAST(o.amount AS DECIMAL(20,2)) $1');
-            if (!is_null($summary)) {
-                $table->with('summary', $summary);
-            }
-            return $table->make(true);
+                ->orderColumn('o.amount', 'CAST(o.amount AS DECIMAL(20,2)) $1')
+                ->make(true);
 
         } catch(\Exception $e) {
             sendNoticationError($e);
@@ -2518,39 +2506,6 @@ class OperationController extends Controller
     public function getProjectsBalance(Request $donor)
     {
 
-    }
-
-    /**
-     * Show Operation List.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    /**
-     * Count, amount and FEE per operation type for an already filtered operations query.
-     */
-    private function _operationsSummary($query)
-    {
-        $rows = $query->select(DB::raw('
-                o.type,
-                COUNT(*) AS count,
-                SUM(o.amount) AS amount,
-                SUM(IF(o.type = "income", o.amount * IFNULL(o.fee, 0) / 100, 0)) AS fee
-            '))
-            ->whereIn('o.type', ['income', 'outcome', 'balance'])
-            ->groupBy('o.type')
-            ->get()
-            ->keyBy('type');
-
-        $summary = ['fee' => (float) $rows->sum('fee')];
-        foreach (['income', 'outcome', 'balance'] as $type) {
-            $summary[$type] = [
-                'count' => (int) optional($rows->get($type))->count,
-                'amount' => (float) optional($rows->get($type))->amount,
-            ];
-        }
-        $summary['all'] = ['count' => $summary['income']['count'] + $summary['outcome']['count']];
-
-        return $summary;
     }
 
     /**
