@@ -69,6 +69,8 @@ export const api = {
 	balanceAccountOperations : apiDomain + '/operation/balance/account',
 	balanceAccountsDetailsOperations : apiDomain + '/operation/balance/accounts/details',
 	historyOperation : apiDomain + '/operation/history/select',
+	historyOperationShow : apiDomain + '/operation/history/show',
+	historyOperationFile : apiDomain + '/operation/history/file',
 	historyOperationDelete : apiDomain + '/operation/history/delete',
 
 	// IMPORTS OPERATIONS
@@ -76,6 +78,9 @@ export const api = {
 	importMasiveIncomes : apiDomain + '/operation/import/masive/incomes',
 	importMasiveOutcomes : apiDomain + '/operation/import/masive/outcomes',
 	importMasiveTransfers : apiDomain + '/operation/import/masive/transfers',
+	importIncomesTemplate : apiDomain + '/operation/import/incomes/template',
+	importIncomesCheck : apiDomain + '/operation/import/incomes/check',
+	importIncomesConfirm : apiDomain + '/operation/import/incomes/confirm',
 
 
 	//ACCOUNTS

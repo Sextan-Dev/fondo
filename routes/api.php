@@ -77,11 +77,18 @@ Route::group(['middleware' => ['jwt.auth' ]], function()
     Route::post('operation/upload', 'OperationController@upload');  
     
     Route::post('operation/import/masive/projects', 'LayoutController@uploadMasiveProjects');  
-    Route::post('operation/import/masive/incomes', 'LayoutController@uploadMasiveIncomes');  
+    Route::post('operation/import/masive/incomes', 'IncomeImportController@legacy');  
     Route::post('operation/import/masive/outcomes', 'LayoutController@uploadMasiveOutcomes');  
     Route::post('operation/import/masive/transfers', 'LayoutController@uploadMasiveTransfers');
-    Route::post('/operation/history/select', 'OperationController@operationHistory');
-    Route::post('/operation/history/delete', 'OperationController@deleteOperationHistory');
+
+    // INCOME IMPORTS: template, check then confirm; history and rollback of every import
+    Route::post('operation/import/incomes/template', 'IncomeImportController@template');
+    Route::post('operation/import/incomes/check', 'IncomeImportController@check');
+    Route::post('operation/import/incomes/confirm', 'IncomeImportController@confirm');
+    Route::post('/operation/history/select', 'IncomeImportController@history');
+    Route::post('/operation/history/show', 'IncomeImportController@show');
+    Route::post('/operation/history/file', 'IncomeImportController@file');
+    Route::post('/operation/history/delete', 'IncomeImportController@revert');
     
     
     // Route::post('operation/upload', 'LayoutController@upload');    

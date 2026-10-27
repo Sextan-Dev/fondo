@@ -22,7 +22,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use PhpParser\Node\Expr\AssignOp\Concat;
 use Maatwebsite\Excel\Facades\Excel;
-use App\OperationHistory;
 
 class OperationController extends Controller
 {
@@ -117,6 +116,7 @@ class OperationController extends Controller
                 'company_id' => idCompany()
             ])
             ->get();
+            $incomeCategories = config('operations.income_categories');
 
             $success = true;
             return compact(
@@ -124,10 +124,11 @@ class OperationController extends Controller
                 'mode',
                 'fee',
                 'monitoring',
-                'projects', 
+                'projects',
                 'contacts',
                 'allContacts',
-                'accounts'        
+                'accounts',
+                'incomeCategories'
             );
         } catch(\Exception $e) {
             sendNoticationError($e);
@@ -1141,7 +1142,8 @@ class OperationController extends Controller
                 o.transfer_reference,
                 o.transfer,
                 o.percentage_operating_cost,
-                o.val_operating_cost'
+                o.val_operating_cost,
+                o.history_operation_id'
             )
             ->leftJoin('contacts AS ct', 'o.contact_id', '=', 'ct.id')
             ->leftJoin('contacts AS d', 'o.donor_id', '=', 'd.id')
@@ -1155,8 +1157,13 @@ class OperationController extends Controller
                 $data = $data->whereRaw('((o.is_co = 1 AND o.type = "income") OR o.is_co = 0)');
             }
 
-            // o.date is a DATE column: comparing it directly (not through DATE()) lets MySQL use an index.
-            $data->whereBetween('o.date', [$request->from, $request->to]);
+            // One import shows all its operations, whatever their date
+            if ($request->filled('history')) {
+                $data->where('o.history_operation_id', (int) $request->history);
+            } else {
+                // o.date is a DATE column: comparing it directly (not through DATE()) lets MySQL use an index.
+                $data->whereBetween('o.date', [$request->from, $request->to]);
+            }
 
             // Users limited to some donors only see those donors' operations, whichever contact they ask for.
             $donorIds = $this->_assignedDonorIds();
@@ -2518,52 +2525,6 @@ class OperationController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function operationHistory(Request $request)
-    {
-        try {            
-            $historyData = DB::table('history_operations AS a')
-            ->selectRaw('
-                a.*,
-                b.name,
-                c.name as name_delete')
-            ->leftJoin('users AS b', 'a.user_id', '=', 'b.id')
-            ->leftJoin('users AS c', 'a.user_id_delete', '=', 'c.id')
-            ->whereRaw('DATE(a.date) >= ? AND DATE(a.date) <= ?', [$request->from, $request->to])
-            ->orderBy('a.id', 'desc');
-
-
-            return Datatables::of($historyData)->make(true);
-        } catch(\Exception $e) {
-            sendNoticationError($e);
-            return ['success' => false , 'msg' =>  _("Oups... Un error ha occurido : ").$e->getMessage()];
-        }
-    }
-   
-     /*** DELETE OPERATION***/
-     public function deleteOperationHistory(Request $request)
-     {
-         try{
-             //SET UNACTIVE
-             if (!actionDelete()) abort(403);
-             $item = OperationHistory::whereIn('user_id', User::select('id')->where('company_id', idCompany()))->where(['id' => $request->id, 'status' => 1])->firstOrFail();
-             if($item){
-                $date = date('Y-m-d H:i:s');
-                $item->fill([
-                    'status' => 0,
-                    'user_id_delete' => authUser('id'),
-                    'date_delete' => $date
-                ])->save();
-                Operation::where(['import_key' => $item->import_key, 'company_id' => idCompany()])->delete();
-             }
- 
-             return ['success' => true, 'msg' => _("Elemento suprimido correctamente !")];
- 
-         } catch(\Exception $e) {
-             sendNoticationError($e);
-             return ['success' => false , 'msg' =>  _("Oups... Un error ha occurido : ").$e->getMessage()];
-         }
-     }
-
     /**
      * Count, amount and FEE per operation type for an already filtered operations query.
      */

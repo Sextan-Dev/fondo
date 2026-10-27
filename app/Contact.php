@@ -68,7 +68,8 @@ class Contact extends Model
         'deal',
         'name_comercial',
         'name_executive',
-        'state'
+        'state',
+        'history_operation_id'
     ];
 
     public function company()

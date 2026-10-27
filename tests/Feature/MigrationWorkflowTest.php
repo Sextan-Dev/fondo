@@ -10,7 +10,6 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Tests\TestCase;
@@ -179,14 +178,15 @@ class MigrationWorkflowTest extends TestCase
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->fromArray([
             ['Date', 'Donor', 'Amount', 'Fee', 'Category', 'Subcategory', 'Comment', 'Account', 'Retention'],
-            [46315, $name, 1234.56, '5%', 'Migration test', 'Test', 'Migration import', '00123456789', 0],
+            [46315, $name, 1234.56, '5%', 'AVN', 'AVN', 'Migration import', '00123456789', 0],
         ]);
         $sheet->setCellValueExplicit('H2', '00123456789', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
         $path = tempnam(sys_get_temp_dir(), 'fondo-import-').'.xlsx';
         $this->temporaryFiles[] = $path;
         (new Xlsx($spreadsheet))->save($path);
         $this->actingAs($this->operator);
-        Excel::import(new \App\Imports\Operations\Incomes(), $path);
+        $import = new \App\Imports\Operations\IncomeImport();
+        $import->import($import->validate($path, true), ['original_name' => 'layout.xlsx', 'path' => null, 'hash' => null]);
         $donor = Contact::where('name', $name)->firstOrFail();
         $operation = Operation::where('contact_id', $donor->id)->firstOrFail();
         $this->assertSame('2026-10-20', $operation->date);
