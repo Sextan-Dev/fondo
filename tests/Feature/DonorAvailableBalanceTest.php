@@ -118,6 +118,29 @@ class DonorAvailableBalanceTest extends TestCase
         $this->assertEqualsWithDelta(1000, $this->available('Internacional'), 0.001);
     }
 
+    public function test_project_shows_what_it_holds_in_every_classification(): void
+    {
+        $project = $this->project();
+        $this->income(1000, ['subcategory' => 'Internacional']);
+        $this->fund($project, 400, 'Internacional');
+        $this->outcome(100, ['project_id' => $project, 'subcategory' => 'Internacional']);
+        $this->income(100);
+        $this->fund($project, 50);
+        $this->outcome(50, ['project_id' => $project]);
+
+        $this->assertEqualsWithDelta(300, $this->projects(), 0.001);
+    }
+
+    public function test_project_spent_in_another_classification_shows_nothing_left(): void
+    {
+        $project = $this->project();
+        $this->income(500);
+        $this->fund($project, 500);
+        $this->outcome(500, ['project_id' => $project, 'subcategory' => 'Internacional']);
+
+        $this->assertEqualsWithDelta(0, $this->projects(), 0.001);
+    }
+
     public function test_transfers_received_keep_their_full_amount(): void
     {
         $this->income(1000, ['fee' => '10']);

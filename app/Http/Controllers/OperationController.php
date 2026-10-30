@@ -1332,28 +1332,9 @@ class OperationController extends Controller
                     ->get()->toArray();
 
                    
-                    $operations_outs = Operation::selectRaw('
-                        p.id,
-                        p.name,
-                        p.monitoring,
-                        SUM( operations.amount ) as totalAvailable                   
-                    ')
-                    ->leftJoin('projects as p', 'p.id', '=', 'operations.project_id')
-                    ->where([
-                        'operations.active' => 1,
-                        'operations.type' => 'outcome',
-                        'operations.category' => $request->category,
-                        'operations.subcategory' => $request->subcategory,
-                        'operations.donor_id' => $contact_id 
-                    ])
-                    ->whereRaw('operations.project_id IS NOT NULL AND operations.project_id  <> 0') 
-                    ->groupBy('p.id')
-                    ->get()->keyBy('id')->toArray();
-                                                            
+                    $balances = $this->_projectBalances($contact_id);
                     foreach($operations as $key => $item){
-                        if(isset($operations_outs[$item['id']])){                            
-                            $operations[$key]['totalAvailable'] = $operations[$key]['totalAvailable'] - $operations_outs[$item['id']]['totalAvailable'];                            
-                        }
+                        $operations[$key]['totalAvailable'] = $balances[$item['id']] ?? 0;
                     }
                   
                 } 
@@ -2507,6 +2488,27 @@ class OperationController extends Controller
     public function getProjectsBalance(Request $donor)
     {
 
+    }
+
+    /**
+     * What each project holds of a donor's money, by project id. Counts every classification,
+     * since a project can receive money in one and spend it in another.
+     */
+    private function _projectBalances($donorId)
+    {
+        $incomes = Operation::selectRaw('project_id, SUM(amount) as total')
+            ->where(['active' => 1, 'type' => 'income', 'contact_id' => $donorId])
+            ->whereRaw('project_id IS NOT NULL AND project_id <> 0')
+            ->groupBy('project_id')
+            ->pluck('total', 'project_id');
+
+        $outcomes = Operation::selectRaw('project_id, SUM(amount) as total')
+            ->where(['active' => 1, 'type' => 'outcome', 'donor_id' => $donorId])
+            ->whereRaw('project_id IS NOT NULL AND project_id <> 0')
+            ->groupBy('project_id')
+            ->pluck('total', 'project_id');
+
+        return $incomes->map(fn ($total, $project) => $total - ($outcomes[$project] ?? 0))->all();
     }
 
     /**
