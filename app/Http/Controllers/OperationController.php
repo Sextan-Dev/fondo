@@ -1277,9 +1277,11 @@ class OperationController extends Controller
             }else{
                 if($request->resource == 'subcategories'){ 
 
+                    // Same balance as Saldo Donantes (ReportController@donorsBalance): what the
+                    // donor received less what it gave, whether or not a project holds the money
                     $operations = Operation::selectRaw('
                         subcategory,
-                        SUM( IF( project_id = 0 , amount,0) - ( IF( project_id = 0 , amount,0)  * IF(fee = 0 OR fee IS NULL, 0, fee/100))) as totalAvailable                
+                        SUM( IF( transfer = 1 AND project_id IS NOT NULL, amount, IF( project_id = 0, amount - ( amount * IF(fee = 0 OR fee IS NULL, 0, fee/100)), 0))) as totalAvailable                
                     ')->where([
                         'active' => 1,
                         'type' => 'income',
@@ -1301,17 +1303,6 @@ class OperationController extends Controller
                         'category' => $request->category,
                         'donor_id' => $contact_id 
                     ])
-                    // A project only holds what it received in this classification, so an
-                    // outcome charged to a project that received nothing comes out of here
-                    ->whereRaw('(operations.project_id = 0 OR operations.project_id IS NULL OR NOT EXISTS (
-                        SELECT 1 FROM operations AS received
-                        WHERE received.active = 1
-                            AND received.type = "income"
-                            AND received.contact_id = operations.donor_id
-                            AND received.category = operations.category
-                            AND received.subcategory = operations.subcategory
-                            AND received.project_id = operations.project_id
-                    ))') 
                     ->groupBy('subcategory')
                     ->get()->keyBy('subcategory')->toArray();
                     foreach($operations as $key => $item){

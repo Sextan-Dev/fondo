@@ -10,8 +10,8 @@ use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
- * Importe Máximo of Nueva Operación: added to the projects it lists, it must equal the balance of the donor in
- * Saldo Donantes. Works inside a rolled back transaction, like MigrationWorkflowTest.
+ * Importe Máximo of Nueva Operación: it must equal the balance of the donor in Saldo Donantes, money in projects
+ * included. Works inside a rolled back transaction, like MigrationWorkflowTest.
  */
 class DonorAvailableBalanceTest extends TestCase
 {
@@ -95,18 +95,18 @@ class DonorAvailableBalanceTest extends TestCase
         $this->assertEqualsWithDelta(0, $this->projects(), 0.001);
     }
 
-    public function test_outcome_of_a_funded_project_comes_out_of_the_project(): void
+    public function test_money_in_a_project_stays_in_the_available_balance(): void
     {
         $project = $this->project();
         $this->income(1000);
         $this->fund($project, 400);
         $this->outcome(150, ['project_id' => $project]);
 
-        $this->assertEqualsWithDelta(600, $this->available(), 0.001);
+        $this->assertEqualsWithDelta(850, $this->available(), 0.001);
         $this->assertEqualsWithDelta(250, $this->projects(), 0.001);
     }
 
-    public function test_money_received_in_another_classification_does_not_fund_the_project(): void
+    public function test_each_classification_keeps_its_own_balance(): void
     {
         $project = $this->project();
         $this->income(1000);
@@ -115,7 +115,15 @@ class DonorAvailableBalanceTest extends TestCase
         $this->outcome(100, ['project_id' => $project]);
 
         $this->assertEqualsWithDelta(900, $this->available(), 0.001);
-        $this->assertEqualsWithDelta(600, $this->available('Internacional'), 0.001);
+        $this->assertEqualsWithDelta(1000, $this->available('Internacional'), 0.001);
+    }
+
+    public function test_transfers_received_keep_their_full_amount(): void
+    {
+        $this->income(1000, ['fee' => '10']);
+        $this->income(500, ['transfer' => 1, 'donor_id' => 1, 'fee' => '10']);
+
+        $this->assertEqualsWithDelta(1400, $this->available(), 0.001);
     }
 
     public function test_available_balance_can_go_below_zero(): void
