@@ -16,6 +16,9 @@ use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller {
 
+    // Fondo de Remanentes y Liberaciones, under both of its contacts: Saldo Donantes doesn't list it
+    const REMNANT_FUNDS = [363, 537];
+
     /*** DATA CONTROLLER ***/
     public function data() {
 
@@ -1105,7 +1108,7 @@ class ReportController extends Controller {
         $donors = Contact::select('id','name')->where([
             'category' => 'Donador', 
             'active' => 1
-        ]);
+        ])->whereNotIn('id', self::REMNANT_FUNDS);
         if ($donorsAssing != 'all') {
             $donors->whereRaw('id IN('.$donorsAssing.')');
         }

@@ -550,11 +550,11 @@
                         ? '<span class="ol-contact">' + contact + '</span>'
                         : '<a href="/operation/form/' + id + '" class="ol-contact" data-action="edit" data-id="' + id + '">' + contact + '</a>'
                 ];
-                if (plainText(row.comment)) {
-                    parts.push('<span class="ol-concept" title="' + escapeHtml(row.comment) + '">' + escapeHtml(row.comment) + '</span>');
-                }
                 if (plainText(row.project_name)) {
                     parts.push('<span class="ol-project" title="' + escapeHtml(row.project_name) + '"><i class="icon-feather-folder"></i><span>' + escapeHtml(row.project_name) + '</span></span>');
+                }
+                if (plainText(row.comment)) {
+                    parts.push('<span class="ol-concept" title="' + escapeHtml(row.comment) + '">' + escapeHtml(row.comment) + '</span>');
                 }
                 // Booked by an income import: opens every operation of that import
                 if (importId && !this.importId) {
@@ -654,8 +654,8 @@
                     { key: 'category', data: 'category', name: 'o.category', title: 'Clasificación', className: 'no-export', searchable: false, responsivePriority: 5, render: vm.categoryCell },
                     { key: 'donor', data: 'donor', name: 'd.name', title: 'Donador', className: 'no-export', searchable: false, responsivePriority: 6, render: vm.donorCell },
                     { key: 'pay', data: 'mode', name: 'ca.name', title: 'Pago', className: 'no-export', searchable: false, responsivePriority: 7, render: vm.payCell },
-                    { key: 'retention', data: 'fee', name: 'o.fee', title: 'Retenciones', className: 'no-export', orderable: false, searchable: false, responsivePriority: 8, render: vm.retentionCell },
                     { key: 'amount', data: 'amount', name: 'o.amount', title: 'Importe', className: 'no-export text-right', searchable: false, responsivePriority: 2, render: vm.amountCell },
+                    { key: 'retention', data: 'fee', name: 'o.fee', title: 'Retenciones', className: 'no-export', orderable: false, searchable: false, responsivePriority: 8, render: vm.retentionCell },
                     { key: 'actions', data: 'id', name: 'o.id', title: '', className: 'no-export text-right', orderable: false, searchable: false, responsivePriority: 4, render: vm.actionsCell },
                     exportOnly(vm.exportDate, { data: 'date', name: 'o.date', title: 'Fecha', searchable: false }),
                     exportOnly(data => (TYPES[data] || TYPES.outcome).label, { data: 'type', name: 'o.type', title: 'Tipo', searchable: false }),
@@ -683,16 +683,16 @@
                     searchDelay: 400,
                     pageLength: 25,
                     lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-                    // As in the previous version: by id, oldest first
-                    order: [[col('id'), 'asc']],
+                    // Oldest first; the id keeps the operations of one day in the order they were captured
+                    order: [[col('date'), 'asc'], [col('id'), 'asc']],
                     stateSave: true,
                     stateDuration: -1,
-                    stateSaveParams: (settings, state) => { state.idOrder = true; },
+                    stateSaveParams: (settings, state) => { state.oldestFirst = true; },
                     stateLoadParams: (settings, state) => {
                         // Visibility isn't up to the user here: a saved state must not show the export columns.
                         (state.columns || []).forEach(column => delete column.visible);
-                        // States saved while the list was ordered by date: start again from the id order
-                        if (!state.idOrder) {
+                        // States saved with a previous default order: start again from the current one
+                        if (!state.oldestFirst) {
                             delete state.order;
                             delete state.start;
                         }
@@ -829,6 +829,7 @@
         --ol-line: #e8ebf1;
         --ol-blue: #047bf8;
         --ol-blue-soft: rgba(4, 123, 248, .08);
+        --ol-blue-dark: #0360c0;
         --ol-green: #1f8a4c;
         --ol-green-soft: rgba(31, 138, 76, .1);
         --ol-red: #c94a4a;
@@ -969,17 +970,24 @@
     .operation-list .ol-project {
         display: flex;
         align-items: baseline;
-        gap: .35rem;
-        font-size: .72rem;
-        color: var(--ol-muted);
+        gap: .4rem;
+        width: fit-content;
+        max-width: 100%;
+        margin: .3rem 0;
+        padding: .2rem .6rem;
+        border-radius: 6px;
+        background-color: var(--ol-blue-soft);
+        color: var(--ol-blue-dark);
+        font-size: .8rem;
+        font-weight: 700;
     }
     .operation-list .ol-project i {
         flex: 0 0 auto;
-        font-size: 11px;
+        font-size: 13px;
     }
     .operation-list .ol-project > span {
         display: -webkit-box;
-        -webkit-line-clamp: 1;
+        -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
     }

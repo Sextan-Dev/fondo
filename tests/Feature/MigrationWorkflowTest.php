@@ -338,6 +338,13 @@ class MigrationWorkflowTest extends TestCase
         $this->api('POST', 'donors/balance/report', ['month' => '10/2026'])->assertStatus(422);
     }
 
+    public function test_donors_balance_report_leaves_out_the_remnant_funds(): void
+    {
+        $rows = $this->api('POST', 'donors/balance/report', ['month' => '2026-10'])->assertOk()->json('data');
+        $this->assertNotEmpty($rows);
+        $this->assertEmpty(array_intersect(array_column($rows, 'id'), [363, 537]));
+    }
+
     public function test_existing_internal_report_links_remain_usable(): void
     {
         $contact = Contact::create(['name' => 'Migration donor', 'category' => 'Donador', 'company_id' => 1, 'active' => 1]);
